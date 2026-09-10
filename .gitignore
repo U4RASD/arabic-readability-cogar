@@ -1,0 +1,39 @@
+# Secrets
+.env
+*.key
+
+# Data (not distributed, see data/README.md)
+data/*
+!data/README.md
+
+# Outputs and caches
+outputs/*
+!outputs/.gitkeep
+*_cache.json
+raw_*.csv
+nlp_cache*.json
+gpt_cache.json
+gemini_labels.csv
+eval_cache_*.csv
+
+# Model checkpoints
+*.bin
+*.safetensors
+*.joblib
+*.pt
+neoarabert_readability/
+neoarabert_runs/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+venv/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,68 @@
+# Evaluation configuration for the unlabelled cross-source corpus.
+# Same harness, same methods, same prompt as eval_barec.toml. Only the
+# dataset and the output directory change.
+#
+# The corpus has no gold labels: gold_dummy is all zeros and only fills
+# the harness gold slot. Ignore summary.csv for this run and use
+# predictions.csv, which feeds the cross-source figure.
+#
+# Run from the repository root:
+#   python scripts/02_evaluate.py --config configs/eval_crosssource.toml
+
+[dataset]
+path        = "data/crosssource_chunks.csv"
+text_column = "text"
+gold_column = "gold_dummy"
+id_column   = "uid"
+gold_base   = 0
+
+[eval]
+num_levels  = 5
+output_dir  = "outputs/crosssource"
+use_cache   = true
+
+prompt = '''
+You are an expert in Arabic linguistics and reading comprehension. Your task is to assess the readability level of a given Arabic text. Use the following 5-level scale: 1 = Very Easy (texts for early primary school, very simple vocabulary and short sentences) 2 = Easy (texts for upper primary school, common everyday vocabulary) 3 = Medium (texts for middle school, moderately complex vocabulary and sentence structure) 4 = Difficult (texts for high school or undergraduate level, advanced vocabulary and complex syntax) 5 = Very Difficult (specialized or academic texts, technical vocabulary, complex argumentation) Rules: Base your judgment on vocabulary complexity, sentence length and structure, and level of abstraction. Do NOT consider the topic or domain alone, focus on linguistic difficulty. Respond with ONLY a single integer: 1, 2, 3, 4 or 5. Nothing else.
+Text to assess:
+"""
+{PASTE THE ARABIC TEXT HERE}
+"""
+'''
+
+[formula]
+enabled             = true
+osman_weights       = [1.0]
+include_old         = false
+include_flesch_only = true
+
+[[llm]]
+name        = "gpt-4.1"
+model       = "gpt-4.1"
+base_url    = ""
+api_key     = ""
+api_key_env = "OPENAI_API_KEY"
+workers     = 8
+max_tokens  = 32
+temperature = 0.0
+disable_thinking = false
+
+[[llm]]
+name        = "qwen3.5-35b"
+model       = "Qwen/Qwen3.5-35B-A3B"
+base_url    = ""
+api_key     = "EMPTY"
+workers     = 8
+max_tokens  = 16384
+temperature = 0.0
+disable_thinking = false
+
+[[llm]]
+name        = "fanar-c-2-27b"
+model       = "Fanar-C-2-27B"
+base_url    = "https://api.fanar.qa/v1"
+api_key     = ""
+api_key_env = "FANAR_API_KEY"
+workers     = 4
+max_tokens  = 32
+temperature = 0.0
+disable_thinking = false

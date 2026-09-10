@@ -1,0 +1,68 @@
+# Evaluation configuration for the 1,000-paragraph BAREC set.
+# Run from the repository root:
+#   python scripts/02_evaluate.py --config configs/eval_barec.toml
+#
+# API keys are never stored here. Put them in a .env file at the repository
+# root (see .env.example) or export them as environment variables.
+
+[dataset]
+path        = "data/barec_5levels.parquet"
+text_column = "text"
+gold_column = "difficulty_level"
+id_column   = "ID"
+gold_base   = 0          # 0 if gold labels are 0..N-1, 1 if they are 1..N
+
+[eval]
+num_levels  = 5
+output_dir  = "outputs/barec"
+use_cache   = true       # reuse cached LLM responses, only call missing docs
+
+# The instruction sent to every LLM. Everything before "Text to assess:"
+# becomes the system message and the document follows as the user message.
+prompt = '''
+You are an expert in Arabic linguistics and reading comprehension. Your task is to assess the readability level of a given Arabic text. Use the following 5-level scale: 1 = Very Easy (texts for early primary school, very simple vocabulary and short sentences) 2 = Easy (texts for upper primary school, common everyday vocabulary) 3 = Medium (texts for middle school, moderately complex vocabulary and sentence structure) 4 = Difficult (texts for high school or undergraduate level, advanced vocabulary and complex syntax) 5 = Very Difficult (specialized or academic texts, technical vocabulary, complex argumentation) Rules: Base your judgment on vocabulary complexity, sentence length and structure, and level of abstraction. Do NOT consider the topic or domain alone, focus on linguistic difficulty. Respond with ONLY a single integer: 1, 2, 3, 4 or 5. Nothing else.
+Text to assess:
+"""
+{PASTE THE ARABIC TEXT HERE}
+"""
+'''
+
+# ---- Formula-based methods (OSMAN, Flesch) ----
+[formula]
+enabled             = true
+osman_weights       = [1.0]      # 1.0 = OSMAN only
+include_old         = false
+include_flesch_only = true
+
+# ---- LLM raters (OpenAI-compatible endpoints) ----
+[[llm]]
+name        = "gpt-4.1"
+model       = "gpt-4.1"
+base_url    = ""                 # empty = OpenAI default endpoint
+api_key     = ""                 # leave empty, read from OPENAI_API_KEY
+api_key_env = "OPENAI_API_KEY"
+workers     = 8
+max_tokens  = 32
+temperature = 0.0
+disable_thinking = false
+
+[[llm]]
+name        = "qwen3.5-35b"
+model       = "Qwen/Qwen3.5-35B-A3B"
+base_url    = ""                 # set to your OpenAI-compatible server, or QWEN_BASE_URL
+api_key     = "EMPTY"            # self-hosted servers usually ignore the key
+workers     = 8
+max_tokens  = 16384              # reasoning model, needs a large budget
+temperature = 0.0
+disable_thinking = false
+
+[[llm]]
+name        = "fanar-c-2-27b"
+model       = "Fanar-C-2-27B"
+base_url    = "https://api.fanar.qa/v1"
+api_key     = ""                 # leave empty, read from FANAR_API_KEY
+api_key_env = "FANAR_API_KEY"
+workers     = 4                  # Fanar limit is about 50 requests per minute
+max_tokens  = 32
+temperature = 0.0
+disable_thinking = false
